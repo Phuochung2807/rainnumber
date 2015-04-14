@@ -1,0 +1,2 @@
+cocos compile -s D:\Projects\RainNumber -p android --ap16
+cocos run -s D:\Projects\rainnumber2 -p android --ap16
