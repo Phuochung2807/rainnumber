@@ -42,35 +42,50 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import newbie.games.rainnumber.R;
+import 	android.view.Gravity;
+import com.google.android.gms.ads.InterstitialAd;
 
 public class AppActivity extends Cocos2dxActivity {
 	private FrameLayout rootView;
 	AdView adView;
 	LinearLayout adsLayout;
+	InterstitialAd mInterstitialAd;
+	Boolean isLoadAds;
+
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidNDKHelper.SetNDKReceiver(this);
 		setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
+		isLoadAds = false;
 	}
+
 	public void loadAd(JSONObject parameters) {
 		if (parameters != null) {
 			try {
 				String ad_mob_id = parameters.getString("ad_mob_id");
 				adsLayout = new LinearLayout(this);
-				adsLayout.setLayoutParams(new LayoutParams(
-						ViewGroup.LayoutParams.WRAP_CONTENT,
-						ViewGroup.LayoutParams.WRAP_CONTENT));
+LinearLayout.LayoutParams adParams = new LinearLayout.LayoutParams(
+    		LinearLayout.LayoutParams.WRAP_CONTENT,
+    		LinearLayout.LayoutParams.WRAP_CONTENT);
+adParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
 				adView = new AdView(this);
 				adView.setAdSize(AdSize.SMART_BANNER);
 				adView.setAdUnitId(ad_mob_id);
+
+				String ad_mob_inter_id = parameters.getString("ad_mob_inter_id");
+				mInterstitialAd = new InterstitialAd(this);
+        		mInterstitialAd.setAdUnitId(ad_mob_inter_id);
+
 				AdRequest adRequest = new AdRequest.Builder()
 						.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
 						.addTestDevice("FD6E971B2766B8C79E91E83179768179")
 						.addTestDevice("2D3F66CF1DC1C7EEE76C387F2FDD48F1")
 						.addTestDevice("35C0DB7AB9AB50EB4D7FD36C73390B60")
 						.build();
+
 				adView.loadAd(adRequest);
-				adsLayout.addView(adView);
+				mInterstitialAd.loadAd(adRequest);
+				adsLayout.addView(adView, adParams);
 				this.GetRootView().addView(adsLayout);
 
 			} catch (JSONException e) {
@@ -90,9 +105,30 @@ public class AppActivity extends Cocos2dxActivity {
 
 	public void hideAd(JSONObject parameters) {
 		adsLayout.setVisibility(View.INVISIBLE);
+		if (isLoadAds)
+		{
+			AdRequest adRequest = new AdRequest.Builder()
+						.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+						.addTestDevice("FD6E971B2766B8C79E91E83179768179")
+						.addTestDevice("2D3F66CF1DC1C7EEE76C387F2FDD48F1")
+						.addTestDevice("35C0DB7AB9AB50EB4D7FD36C73390B60")
+						.build();
+
+			//adView.loadAd(adRequest);
+			mInterstitialAd.loadAd(adRequest);
+			isLoadAds = false;
+		}
 	}
 
 	public void showAd(JSONObject parameters) {
 		adsLayout.setVisibility(View.VISIBLE);
+	}
+
+	public void showAdInter(JSONObject parameters)
+	{
+		if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+            isLoadAds = true;
+        }
 	}
 }

@@ -57,7 +57,7 @@ bool GameScene::init()
 	}
 
 	_gameMode = GameMode::Init;
-
+	_isCreateGame = false;
 	initGestures();
 	initBackground();
 	initControls();
@@ -65,7 +65,6 @@ bool GameScene::init()
 
 	//startGame();
 	Utils::playBackgroundMusic(music_background, true);
-	Utils::showAd();
 	return initTouch();
 }
 
@@ -87,6 +86,7 @@ void GameScene::initGame()
 	this->initValues();
 	this->initActions();
 	_background->start();
+	_isCreateGame = true;
 }
 
 void GameScene::initTutorial()
@@ -340,7 +340,11 @@ void GameScene::initMenu()
 			_background->reset();
 			_layerShadow->setVisible(false);
 			startGame();
-			node->removeFromParentAndCleanup(true);
+			node->setVisible(false);
+			node->setPosition(VisibleRect::center() + Vec2(0, 1064));
+			node->stopAllActions();
+			node->setScale(1);
+			node->setOpacity(255);
 		}), NULL);
 		_menuStart->runAction(seq);
 	});
@@ -351,10 +355,8 @@ void GameScene::initMenu()
 	menu->setPosition(0, 0);
 	_menuStart->addChild(menu);
 
-	auto delay = DelayTime::create(0.8f);
-	auto moveTo = MoveBy::create(0.8f, Vec2(0, -1000));
-	auto seq = Sequence::create(delay, moveTo, NULL);
-	_menuStart->runAction(seq);
+	showStart();
+
 
 	//create menu result
 	_menuResult = Sprite::createWithSpriteFrameName(sprite_menu_bg);
@@ -397,6 +399,7 @@ void GameScene::initMenu()
 			node->stopAllActions();
 			node->setScale(1);
 			node->setOpacity(255);
+			Utils::hideAd();
 		}), NULL);
 		_menuResult->runAction(seq);
 	});
@@ -432,7 +435,22 @@ bool GameScene::initTouch()
 	listener->onTouchEnded = CC_CALLBACK_2(GameScene::onTouchEnded, this);
 
 	dispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+
+	auto pKeybackListener = EventListenerKeyboard::create();
+	pKeybackListener->onKeyReleased = CC_CALLBACK_2(GameScene::onKeyReleased, this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(pKeybackListener, this);
+
 	return true;
+}
+
+void GameScene::showStart()
+{
+	_menuStart->setVisible(true);
+
+	auto delay = DelayTime::create(0.8f);
+	auto moveTo = MoveBy::create(0.8f, Vec2(0, -1000));
+	auto seq = Sequence::create(delay, moveTo, NULL);
+	_menuStart->runAction(seq);
 }
 
 void GameScene::scheduleBalloons()
@@ -509,6 +527,40 @@ void GameScene::resumeGame()
 		_layerShadow->setVisible(false);
 	}), NULL);
 	_go->runAction(seq);
+}
+
+void GameScene::onKeyReleased(EventKeyboard::KeyCode keyCode, Event *event)
+{
+	if (keyCode == EventKeyboard::KeyCode::KEY_BACK)
+	{
+		if (_menuStart->isVisible())//dang o menu start => exit game
+		{
+			int r = RandomHelper::random_int(1, 5);
+			if (r == 2)
+			{
+				Utils::showAdInter();
+				this->scheduleOnce([this](float dt){
+					Director::getInstance()->end();
+				}, 3.0f, "loadadandexit");
+			}
+			Director::getInstance()->end();
+		}
+		else if (_menuResult->isVisible())// dang o menu result => chua biet can lam j
+		{
+			Director::getInstance()->end();
+		}
+		else if (_lbPause->isVisible())// dang o menu pause =>resume game
+		{
+			_gameMode = _lastState;
+			resumeGame();
+		}
+		else if (!_lbPause->isVisible() && _gameMode != GameMode::Paused)
+		{
+			_lastState = _gameMode;
+			_gameMode = GameMode::Paused;
+			pausedGame();
+		}
+	}
 }
 
 bool GameScene::onTouchBegan(Touch *touch, Event *event)
@@ -859,12 +911,14 @@ void GameScene::onLostGame(Node* node)
 	this->scheduleOnce([this](float dt){
 		_lostEffect->setVisible(false);
 		getChildByName("menucontrol")->setVisible(false);
+		showAdsInterRandom();
 		showRetryMenu();
 	}, 1.5f, "lostgamek");
 }
 
 void GameScene::showRetryMenu()
 {
+	Utils::showAd();
 	_layerShadow->setVisible(true);
 
 	auto moveTo = MoveBy::create(0.8f, Vec2(0, -1000));
@@ -915,9 +969,20 @@ MenuItemSprite* GameScene::addButton(std::string up, std::string dn, std::string
 	return MenuItemSprite::create(itemUp, itemDn, itemDis, callback);
 }
 
+void GameScene::showAdsInterRandom()
+{
+	int idx = RandomHelper::random_int(0, 4);
+	log("randomize %d", idx);
+	if (3 == idx)
+	{
+		log("sdasdsda");
+		Utils::showAdInter();
+	}
+}
+
 GameScene::~GameScene()
 {
-	if (UserDefault::getInstance()->getBoolForKey(KEY_IS_TUTORIAL, false))
+	if (_isCreateGame)
 	{
 		CC_SAFE_DELETE(_gesture);
 		CC_SAFE_RELEASE_NULL(_actionMovedown);

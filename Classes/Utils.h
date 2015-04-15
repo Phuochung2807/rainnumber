@@ -28,6 +28,8 @@ public:
 
 	static void hideAd();
 
+	static void showAdInter();
+
 	static void endGame();
 
 	static void rate();

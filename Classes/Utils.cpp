@@ -31,7 +31,7 @@ void Utils::playBackgroundMusic(const char* path, bool isLoop){
 	{
 		if (backgroundSoundId == -1)
 		{
-			backgroundSoundId = AudioEngine::play2d(path, isLoop, 0.2f);
+			backgroundSoundId = AudioEngine::play2d(path, isLoop, 0.6f);
 		}
 		else
 			resumeBackgroundMusic();
@@ -53,7 +53,7 @@ void Utils::loadAd(){
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	ValueMap valueMap;
 	valueMap["ad_mob_id"] = AD_MOB_ID;
-	//valueMap["ad_mob_inter_id"] = AD_MOB_INTER_ID;
+	valueMap["ad_mob_inter_id"] = AD_MOB_INTER_ID;
 	Value parameters = Value(valueMap);
 	sendMessageWithParams("loadAd", parameters);
 #endif
@@ -68,6 +68,18 @@ void Utils::showAd(){
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	Value parameters = Value();
 	sendMessageWithParams("showAd", parameters);
+#endif
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
+	CSUtils::Instance->showAd();
+#endif
+}
+
+void Utils::showAdInter()
+{
+	if (!Manage::getInstance()->isShowAd()) return;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+	Value parameters = Value();
+	sendMessageWithParams("showAdInter", parameters);
 #endif
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
 	CSUtils::Instance->showAd();

@@ -94,6 +94,7 @@ void LoadingScene::loadResource(int idx)
 	switch (idx)
 	{
 	case 1:
+		Utils::loadAd();
 		SpriteFrameCache::getInstance()->addSpriteFramesWithFile(UI_ATLAS);
 		break;
 	case 2:
@@ -107,7 +108,6 @@ void LoadingScene::loadResource(int idx)
 		//Sleep(500.0f);
 		break;
 	case 5:
-		Utils::loadAd();
 		break;
 	default:
 		break;
@@ -117,7 +117,7 @@ void LoadingScene::loadResource(int idx)
 void LoadingScene::switchScene()
 {
 	auto game = GameScene::createScene();
-	auto trans = TransitionProgressRadialCCW::create(1.0f, game);
+	auto trans = TransitionFadeUp::create(1.0f, game);
 	Director::getInstance()->replaceScene(trans);
 }
 

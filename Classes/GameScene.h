@@ -55,7 +55,7 @@ public:
 	bool onTouchBegan(cocos2d::Touch *touch, cocos2d::Event *event);
 	void onTouchMoved(cocos2d::Touch *touch, cocos2d::Event *event);
 	void onTouchEnded(cocos2d::Touch *touch, cocos2d::Event *event);
-
+	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event *event);
 	void update(float deltaTime);
 
 	virtual ~GameScene();
@@ -91,7 +91,11 @@ private:
 
 	MenuItemSprite* addButton(std::string up, std::string dn, std::string dis, ccMenuCallback callback);
 	void initMenu();
+
+	void showStart();
+
 	void showRetryMenu();
+	void showAdsInterRandom();
 	ofxOneDollar _dollar;
 	ofxGesture* _gesture;
 
@@ -158,6 +162,7 @@ private:
 	Label *_lbPause;
 	Label *_lbCombo;
 	Sprite *_go;
+	bool _isCreateGame;
 };
 
 #endif /* _GAMESCENE_H_ */
