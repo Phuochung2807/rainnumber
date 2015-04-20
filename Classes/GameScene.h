@@ -96,6 +96,7 @@ private:
 
 	void showRetryMenu();
 	void showAdsInterRandom();
+	void scheduleIncreaseDiff();
 	ofxOneDollar _dollar;
 	ofxGesture* _gesture;
 
@@ -116,6 +117,7 @@ private:
 
 	float _balloonInterval;
 	float _balloonSpeed;
+	float _multiBalloonSpeed;
 	float _balloonTimer;
 
 	float _increaseDifficultyInterval;
@@ -159,10 +161,11 @@ private:
 
 	GameMode _lastState;
 
-	Label *_lbPause;
+	Sprite *_lbPause;
 	Label *_lbCombo;
 	Sprite *_go;
 	bool _isCreateGame;
+	int _countLost;
 };
 
 #endif /* _GAMESCENE_H_ */

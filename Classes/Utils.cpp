@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "cocos2d.h"
 #include "audio/include/AudioEngine.h"
+#include "SimpleAudioEngine.h"
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 #include "NDKHelper/NDKHelper.h"
 #endif
@@ -21,31 +22,34 @@ using namespace cocos2d::experimental;
 int Utils::backgroundSoundId = -1;
 
 void Utils::playEffect(const char* path){
-	//CocosDenshion::SimpleAudioEngine::getInstance()->stopAllEffects();
 	if (Manage::getInstance()->isPlaySound())
-		AudioEngine::play2d(path);
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(path);
+	//if (Manage::getInstance()->isPlaySound())
+	//	AudioEngine::play2d(path);
 }
 
 void Utils::playBackgroundMusic(const char* path, bool isLoop){
+	//if (Manage::getInstance()->isPlayMusic())
+	//{
+	//	if (backgroundSoundId == -1)
+	//	{
+	//		//backgroundSoundId = AudioEngine::play2d(path, isLoop, 0.6f);
+	//	}
+	//	else
+	//		resumeBackgroundMusic();
+	//}
+	
 	if (Manage::getInstance()->isPlayMusic())
-	{
-		if (backgroundSoundId == -1)
-		{
-			backgroundSoundId = AudioEngine::play2d(path, isLoop, 0.6f);
-		}
-		else
-			resumeBackgroundMusic();
-	}
-		
+		CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic(path, isLoop);
 }
 
 void Utils::stopBackgroundMusic(){
-	AudioEngine::pause(backgroundSoundId);
+	CocosDenshion::SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
 }
 
 void Utils::resumeBackgroundMusic()
 {
-	AudioEngine::resume(backgroundSoundId);
+	CocosDenshion::SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
 }
 
 void Utils::loadAd(){
@@ -60,6 +64,7 @@ void Utils::loadAd(){
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
 	CSUtils::Instance->loadAd();
 #endif
+	Utils::hideAd();
 }
 
 void Utils::showAd(){	
@@ -82,7 +87,7 @@ void Utils::showAdInter()
 	sendMessageWithParams("showAdInter", parameters);
 #endif
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
-	CSUtils::Instance->showAd();
+	CSUtils::Instance->showAdInters();
 #endif
 }
 

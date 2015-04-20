@@ -3,6 +3,7 @@
 #include "GameScene.h"
 #include "VisibleRect.h"
 #include "audio/include/AudioEngine.h"
+#include "SimpleAudioEngine.h"
 #include "Utils.h"
 
 using namespace cocos2d::experimental;
@@ -35,6 +36,8 @@ bool LoadingScene::init()
 	{
 		return false;
 	}
+
+	Utils::loadAd();
 
 	auto logo = Sprite::create(sprite_loading_logo);
 	this->addChild(logo);
@@ -94,7 +97,6 @@ void LoadingScene::loadResource(int idx)
 	switch (idx)
 	{
 	case 1:
-		Utils::loadAd();
 		SpriteFrameCache::getInstance()->addSpriteFramesWithFile(UI_ATLAS);
 		break;
 	case 2:
@@ -108,6 +110,13 @@ void LoadingScene::loadResource(int idx)
 		//Sleep(500.0f);
 		break;
 	case 5:
+		//preload music
+		CocosDenshion::SimpleAudioEngine::getInstance()->preloadBackgroundMusic(music_background);
+
+		CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect(sound_ball_explosion);
+		CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect(sound_stack_balls_explosion);
+		CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect(sound_combo);
+		CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect(sound_lost);
 		break;
 	default:
 		break;
@@ -117,7 +126,7 @@ void LoadingScene::loadResource(int idx)
 void LoadingScene::switchScene()
 {
 	auto game = GameScene::createScene();
-	auto trans = TransitionFadeUp::create(1.0f, game);
+	auto trans = TransitionFadeBL::create(1.5f, game);
 	Director::getInstance()->replaceScene(trans);
 }
 

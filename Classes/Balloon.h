@@ -36,6 +36,7 @@ public:
 		{
 			_enemy->stopAllActions();
 			_enemy->runAction(_animationEnemy);
+			//_enemy->setSpriteFrame(enemy_sprite);
 		}
 	}
 

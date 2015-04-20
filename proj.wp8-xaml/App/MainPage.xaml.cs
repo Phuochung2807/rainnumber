@@ -25,6 +25,7 @@ using System.Windows.Threading;
 using Microsoft.Phone.Info;
 using Windows.Graphics.Display;
 using Microsoft.Phone.Tasks;
+using GoogleAds;
 
 namespace cocos2d
 {
@@ -43,6 +44,11 @@ namespace cocos2d
         public MainPage()
         {
             InitializeComponent();
+            CSUtils.Instance.setLoadAdDelegate(LoadAds);
+            CSUtils.Instance.setShowAdDelegate(ShowAds);
+            CSUtils.Instance.setHideDelegate(HideAds);
+            CSUtils.Instance.setShowAdIntersDelegate(ShowInterstitialAds);
+
 #if DISPLAY_MEMORY
             StartTimer();
 #else
@@ -246,6 +252,87 @@ namespace cocos2d
             {
                 MemoryTextBlock.Text = ex.Message;
             }
+        }
+
+        AdView adView;
+        String AD_BANNER_ID = "ca-app-pub-3186971535196372/4561031243";
+        String AD_INTERSTITIAL_ID = "ca-app-pub-3186971535196372/6037764444";
+
+        private InterstitialAd interstitialAd;
+
+        private void LoadAds()
+        {
+            Debug.WriteLine("Load Ad");
+            Dispatcher.BeginInvoke(() =>
+            {
+                adView = new AdView
+                {
+                    Format = AdFormats.SmartBanner,
+                    AdUnitID = AD_BANNER_ID
+                };
+
+                AdRequest adRequest = new AdRequest();
+                //adRequest.ForceTesting = true;
+                AdsGrid.Children.Add(adView);
+                adView.LoadAd(adRequest);
+                AdsGrid.Visibility = Visibility.Collapsed;
+
+                interstitialAd = new InterstitialAd(AD_INTERSTITIAL_ID);
+                interstitialAd.ReceivedAd += OnAdReceived;
+                interstitialAd.LoadAd(adRequest);
+                isLoadAd = false;
+                isLoadingAds = true;
+                isShowAds = false;
+            });
+        }
+
+        private void ShowAds()
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                AdsGrid.Visibility = Visibility.Visible;
+            });
+        }
+
+        private void HideAds()
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                AdsGrid.Visibility = Visibility.Collapsed;
+                if (isShowAds && !isLoadingAds)
+                {
+                    AdRequest adRequest = new AdRequest();
+
+                    interstitialAd = new InterstitialAd(AD_INTERSTITIAL_ID);
+                    interstitialAd.ReceivedAd += OnAdReceived;
+                    interstitialAd.LoadAd(adRequest);
+                    isLoadAd = false;
+                    isLoadingAds = true;
+                    isShowAds = false;
+                }
+            });
+        }
+
+        private void ShowInterstitialAds()
+        {
+            Dispatcher.BeginInvoke( () =>
+                {
+                    if (isLoadAd)
+                    {
+                        interstitialAd.ShowAd();
+                        isShowAds = true;
+                    }
+
+                });
+        }
+
+        bool isLoadAd = false;
+        bool isLoadingAds;
+        bool isShowAds;
+        private void OnAdReceived(object sender, AdEventArgs e)
+        {
+            isLoadAd = true;
+            isLoadingAds = false;
         }
     }
 }

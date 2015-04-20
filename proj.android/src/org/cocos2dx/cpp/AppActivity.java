@@ -41,7 +41,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import newbie.games.rainnumber.R;
+import com.newbie.magictick.R;
 import 	android.view.Gravity;
 import com.google.android.gms.ads.InterstitialAd;
 
@@ -77,10 +77,6 @@ adParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         		mInterstitialAd.setAdUnitId(ad_mob_inter_id);
 
 				AdRequest adRequest = new AdRequest.Builder()
-						.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-						.addTestDevice("FD6E971B2766B8C79E91E83179768179")
-						.addTestDevice("2D3F66CF1DC1C7EEE76C387F2FDD48F1")
-						.addTestDevice("35C0DB7AB9AB50EB4D7FD36C73390B60")
 						.build();
 
 				adView.loadAd(adRequest);
@@ -108,10 +104,10 @@ adParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
 		if (isLoadAds)
 		{
 			AdRequest adRequest = new AdRequest.Builder()
-						.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-						.addTestDevice("FD6E971B2766B8C79E91E83179768179")
-						.addTestDevice("2D3F66CF1DC1C7EEE76C387F2FDD48F1")
-						.addTestDevice("35C0DB7AB9AB50EB4D7FD36C73390B60")
+						//.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+						//.addTestDevice("FD6E971B2766B8C79E91E83179768179")
+						//.addTestDevice("2D3F66CF1DC1C7EEE76C387F2FDD48F1")
+						//.addTestDevice("35C0DB7AB9AB50EB4D7FD36C73390B60")
 						.build();
 
 			//adView.loadAd(adRequest);

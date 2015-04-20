@@ -18,7 +18,6 @@ MultiballoonManager::MultiballoonManager(Layer *layer, int zOrder)
 		else//rect
 		{
 			auto m = RectMultiBalloon::create(layer, zOrder, TIMELINE_TYPE_MULTIBALLOONS[i]);
-			//Vec2 pos = (VisibleRect::leftTop() + Vec2(-100, -100));
 			int tmp = i % 4;
 			if (TIMELINE_TYPE_MULTIBALLOONS[i] >= 3)
 			{

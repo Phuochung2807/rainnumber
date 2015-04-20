@@ -33,7 +33,11 @@ Scene* GameScene::createScene()
 	//background->setPosition(VisibleRect::center());
 	//shakelayer->addChild(background, kBackground);
 
-	UserDefault::getInstance()->setBoolForKey(KEY_IS_TUTORIAL, false);
+	//UserDefault::getInstance()->setBoolForKey(KEY_IS_TUTORIAL, false);
+	int count = UserDefault::getInstance()->getIntegerForKey(KEY_COUNT_OPEN_APP, 0);
+	UserDefault::getInstance()->setIntegerForKey(KEY_COUNT_OPEN_APP, count++);
+	//Utils::showAd();
+
 	return scene;
 }
 
@@ -62,7 +66,7 @@ bool GameScene::init()
 	initBackground();
 	initControls();
 	initMenu();
-
+    _countLost = 0;
 	//startGame();
 	Utils::playBackgroundMusic(music_background, true);
 	return initTouch();
@@ -126,13 +130,12 @@ void GameScene::initValues()
 	_gameMode = GameMode::Playing;
 	_score = 0;
 
-	_balloonInterval = BALLOON_INTERVAL;
 	_balloonSpeed = TIMEDROP_INIT;
+	_multiBalloonSpeed = TIMEDROP_INIT_MULTIBALLOON;
+
 	_balloonTimer = 0;
 	_isNext = true;
 
-	_increaseDifficultyInterval = TIME_increaseDifficulty;
-	_increaseDifficultyTimer = 0;
 
 	_lb->setString(StringUtils::toString<int>(_score));
 
@@ -151,6 +154,7 @@ void GameScene::initValues()
 
 	this->scheduleBalloons();
 	this->scheduleMultiballoons();
+	this->scheduleIncreaseDiff();
 
 	getChildByName("menucontrol")->setVisible(true);
 }
@@ -200,7 +204,7 @@ void GameScene::initBackground()
 	TTFConfig config;
 	config.fontFilePath = FONT;
 	config.fontSize = 222;
-	_lb = Label::createWithTTF(config, "0");
+	_lb = Label::createWithBMFont("fonts/font.fnt", "00");
 	_lb->setColor(Color3B::YELLOW);
 	_lb->setPosition(VisibleRect::center().x, VisibleRect::center().y);
 	this->addChild(_lb, kScore);
@@ -235,7 +239,7 @@ void GameScene::initBackground()
 	this->addChild(_go, kControl);
 	_go->setVisible(false);
 
-	_lbPause = Label::createWithTTF(config2, "Paused");
+	_lbPause = Sprite::createWithSpriteFrameName("paused.png");
 	_lbPause->setPosition(VisibleRect::center());
 	this->addChild(_lbPause, kControl);
 	_lbPause->setVisible(false);
@@ -307,7 +311,7 @@ void GameScene::initMenu()
 	TTFConfig config;
 	config.fontFilePath = FONT;
 	config.fontSize = 50;
-	config.outlineSize = 2;
+	//config.outlineSize = 2;
 
 	getChildByName("menucontrol")->setVisible(false);
 	_layerShadow = LayerColor::create(Color4B(150, 150, 150, 170), VisibleRect::getVisibleRect().size.width, VisibleRect::getVisibleRect().size.height);
@@ -325,26 +329,50 @@ void GameScene::initMenu()
 	}
 	else
 	{
-		str = StringUtils::format("BestScore: %d", bscore);
+		config.fontSize = 75;
+		str = StringUtils::format("BestScore\n   %d", bscore);
 	}
 	
 	auto tBestscore = Label::createWithTTF(config, str);
+	tBestscore->setColor(Color3B::RED);
 	_menuStart->addChild(tBestscore);
 	tBestscore->setPosition(300, 280);
 
 	auto btPlay = addButton(sprite_bt_play, sprite_bt_play_down, sprite_bt_play_down, [this](Ref* ref){
-		auto scale = EaseBackInOut::create(ScaleTo::create(0.5f, 1.5));
-		auto fadeOut = FadeOut::create(1.0f);
+		auto scale = EaseBackInOut::create(ScaleTo::create(0.7f, 1.5));
+		auto fadeOut = FadeOut::create(0.7f);
 		auto spawn = Spawn::create(scale, fadeOut, NULL);
 		auto seq = Sequence::create(spawn, CallFuncN::create([this](Node* node){
-			_background->reset();
-			_layerShadow->setVisible(false);
-			startGame();
 			node->setVisible(false);
 			node->setPosition(VisibleRect::center() + Vec2(0, 1064));
 			node->stopAllActions();
 			node->setScale(1);
 			node->setOpacity(255);
+			if (UserDefault::getInstance()->getBoolForKey(KEY_IS_TUTORIAL, false))
+			{
+				_go->setVisible(true);
+				_go->setOpacity(255);
+				_go->setScale(3.0f);
+				auto scale = EaseBackInOut::create(ScaleTo::create(0.5f, 1.0));
+				auto delay = DelayTime::create(0.5f);
+				auto scaleOut = EaseOut::create(ScaleTo::create(0.5f, 3.0f), 2);
+				auto fadeOut = FadeOut::create(0.5);
+				auto spawn = Spawn::create(scaleOut, fadeOut, NULL);
+				auto seq = Sequence::create(scale, delay, spawn, CallFunc::create([this](){
+					_layerShadow->setVisible(false);
+					_background->reset();
+					startGame();
+
+				}), NULL);
+				_go->runAction(seq);
+			}
+			else
+			{
+				_background->reset();
+				_layerShadow->setVisible(false);
+				startGame();
+			}
+
 		}), NULL);
 		_menuStart->runAction(seq);
 	});
@@ -357,7 +385,6 @@ void GameScene::initMenu()
 
 	showStart();
 
-
 	//create menu result
 	_menuResult = Sprite::createWithSpriteFrameName(sprite_menu_bg);
 	this->addChild(_menuResult, kControl);
@@ -365,13 +392,16 @@ void GameScene::initMenu()
 	_menuResult->setVisible(false);
 	//_menuResult->runAction(MoveBy::create(0.8f, Vec2(0, -1000)));
 	
+	config.fontSize = 55;
 	auto txtBestscore = Label::createWithTTF(config, "BestScore: ");
 	_menuResult->addChild(txtBestscore);
-	txtBestscore->setPosition(190, 350);
+	txtBestscore->setPosition(225, 350);
+	txtBestscore->setColor(Color3B::GREEN);
 
 	auto txtScore = Label::createWithTTF(config, "Score:     ");
 	_menuResult->addChild(txtScore);
 	txtScore->setPosition(txtBestscore->getPosition() + Vec2(0, -120));
+	txtScore->setColor(Color3B::RED);
 
 	TTFConfig config2;
 	config2.fontFilePath = FONT;
@@ -379,11 +409,13 @@ void GameScene::initMenu()
 
 	auto lbBestscore = Label::createWithTTF(config2, "0");
 	_menuResult->addChild(lbBestscore, 1, "lbbestscore");
-	lbBestscore->setPosition(txtBestscore->getPosition() + Vec2(190, 0));
-	
+	lbBestscore->setPosition(txtBestscore->getPosition() + Vec2(210, 0));
+	lbBestscore->setColor(Color3B::GREEN);
+
 	auto lbScore = Label::createWithTTF(config2, "0");
 	_menuResult->addChild(lbScore, 1, "lbscore");
-	lbScore->setPosition(txtScore->getPosition() + Vec2(190, 0));
+	lbScore->setPosition(txtScore->getPosition() + Vec2(220, 0));
+	lbScore->setColor(Color3B::RED);
 
 	auto btRetry = addButton(sprite_bt_retry, sprite_bt_retry_down, sprite_bt_retry_down, [this](Ref* ref){
 		auto scale = EaseBackInOut::create(ScaleTo::create(0.5f, 1.5));
@@ -403,7 +435,7 @@ void GameScene::initMenu()
 		}), NULL);
 		_menuResult->runAction(seq);
 	});
-	btRetry->setPosition(300, 60);
+	btRetry->setPosition(300, 110);
 	auto menu2 = Menu::create(btRetry, NULL);
 	menu2->setPosition(0, 0);
 	_menuResult->addChild(menu2);
@@ -418,7 +450,7 @@ void GameScene::initActions()
 	}), NULL);
 	_actionMovedown->retain();
 
-	auto move = MoveBy::create(_multiballoonSpeed, Vec2(0, -s));
+	auto move = MoveBy::create(_multiballoonSpeed, Vec2(0, -s - 50.0f));
 	_acMoveRect = Sequence::create(move, CallFuncN::create([this](Node* node){
 		onLostGame(node);
 	}), NULL);
@@ -458,7 +490,7 @@ void GameScene::scheduleBalloons()
 	float timer = TIME_INIT_BALLOON;
 	int nz = sizeof(TIME_INIT_BALLOONS) / sizeof(float);
 	_idxScheduleMultiballoon = 0;
-
+	//this->scheduleUpdate();
 	for (int i = 0; i < nz; i++)
 	{
 		timer += TIME_INIT_BALLOONS[i];
@@ -466,6 +498,7 @@ void GameScene::scheduleBalloons()
 			this->spawnBalloon();
 		}, timer, StringUtils::format("keyz%02d", i));
 	}
+	log("%f ", timer);
 }
 
 void GameScene::scheduleMultiballoons()
@@ -484,6 +517,22 @@ void GameScene::scheduleMultiballoons()
 	//float t = _timeScheduleMultiballoon;
 }
 
+void GameScene::scheduleIncreaseDiff()
+{
+	int nz = sizeof(TIME_INIT_BALLOONS) / sizeof(float);
+	int n = 10;
+	int nn = nz / n;
+	
+	float timer = TIME_INIT_INCREASE_DIFFICULTY;
+	for (int i = 0; i < nn; i++)
+	{
+		timer += TIME_INCREASE;
+		this->scheduleOnce([this](float dt){
+			this->doIncreaseDifficulty();
+		}, timer, StringUtils::format("IncreaseDiffz%02d", i));
+	}
+}
+
 void GameScene::pausedGame()
 {
 	for (auto n : this->getChildren())
@@ -499,7 +548,7 @@ void GameScene::pausedGame()
 	_lbPause->setVisible(true);
 	_lbPause->setOpacity(255);
 	_lbPause->setScale(3.0f);
-	_lbPause->setTextColor(Color4B::YELLOW);
+	//_lbPause->setTextColor(Color4B::YELLOW);
 	auto scale = EaseBackInOut::create(ScaleTo::create(0.9f, 1.0));
 	_lbPause->runAction(scale);
 }
@@ -536,7 +585,8 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode keyCode, Event *event)
 		if (_menuStart->isVisible())//dang o menu start => exit game
 		{
 			int r = RandomHelper::random_int(1, 5);
-			if (r == 2)
+			int count = UserDefault::getInstance()->getIntegerForKey(KEY_COUNT_OPEN_APP, 0);
+			if (r == 2 && count % 5 == 0)
 			{
 				Utils::showAdInter();
 				this->scheduleOnce([this](float dt){
@@ -551,14 +601,14 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode keyCode, Event *event)
 		}
 		else if (_lbPause->isVisible())// dang o menu pause =>resume game
 		{
-			_gameMode = _lastState;
-			resumeGame();
+			//_gameMode = _lastState;
+			//resumeGame();
 		}
 		else if (!_lbPause->isVisible() && _gameMode != GameMode::Paused)
 		{
-			_lastState = _gameMode;
-			_gameMode = GameMode::Paused;
-			pausedGame();
+			//_lastState = _gameMode;
+			//_gameMode = GameMode::Paused;
+			//pausedGame();
 		}
 	}
 }
@@ -695,7 +745,7 @@ void GameScene::onTouchEnded(Touch *touch, Event *event)
 					{
 						_balloonsRemove.push_back(balloon);
 						_score++;
-						_lb->setString(StringUtils::format("%d", _score));
+						_lb->setString(StringUtils::format("%2d", _score));
 						isNeedMoveCharacter = true;
 					}
 				}
@@ -711,7 +761,7 @@ void GameScene::onTouchEnded(Touch *touch, Event *event)
 						Utils::playEffect(sound_stack_balls_explosion);
 						m->destroy(z);
 						_score++;
-						_lb->setString(StringUtils::format("%d", _score));
+						_lb->setString(StringUtils::format("%2d", _score));
 						isNeedMoveCharacter = true;
 						if (std::find(_multiballoonsRemove.begin(), _multiballoonsRemove.end(), m) != _multiballoonsRemove.end())
 						{
@@ -769,18 +819,10 @@ void GameScene::update(float deltaTime)
 	}
 
 	//_balloonTimer += deltaTime;
-	//if (_balloonTimer > _balloonInterval)
+	//if (_balloonTimer > 2.4f)
 	//{
-	//	_balloonTimer -= _balloonInterval;
-	//	this->spawnBalloon();
-	//	//this->spawnMultiballoon();
-	//}
-
-	//_increaseDifficultyTimer += deltaTime;
-	//if (_increaseDifficultyTimer > _increaseDifficultyInterval)
-	//{
-	//	_increaseDifficultyTimer -= _increaseDifficultyInterval;
-	//	//this->doIncreaseDifficulty();
+	//	_balloonTimer -= 2.4f;
+	//	spawnBalloon();
 	//}
 }
 
@@ -817,11 +859,25 @@ void GameScene::removeMultiballoon(MultiBalloon* a)
 	}
 }
 
+#include "Balloon.h"
+
 void GameScene::spawnBalloon()
 {
 	auto b = _balloonManager->getBalloon();
 	_balloons.push_back(b);
 	b->doAction(_actionMovedown->clone());
+
+	//auto t = Balloon::create(this, kBalloon, 0);
+	//t->setPosition(Vec2(320, 1200));
+	//t->setActive(true);
+
+	//auto actionMove = MoveBy::create(_balloonSpeed, Vec2(0, -_screenHeight));
+	//auto a = Sequence::create(actionMove, CallFuncN::create([this](Node* node){
+	//	//onLostGame(node);
+	//}), NULL);
+
+	//t->doAction(a);
+	////_balloons.push_back(t);
 }
 
 void GameScene::spawnMultiballoon()
@@ -870,17 +926,17 @@ void GameScene::addNewParticle(Vec2 position)
 
 void GameScene::doIncreaseDifficulty()
 {
-	if (_balloonInterval > 1.2f)
+	if (_balloonSpeed > TIMEDROP_INIT_MIN)
 	{
-		_balloonInterval -= (increaseDifficulty - 0.05f);
+		_balloonSpeed -= TIMEDROP_BALLOON_DOWN;
 	}
 
-	if (_balloonSpeed > 1.5f)
+	if (_multiBalloonSpeed > TIMEDROP_INIT_MULTIBALLOON_MIN)
 	{
-		_balloonSpeed = _balloonSpeed * 0.9f;
+		_multiBalloonSpeed -= TIMEDROP_MULTIBALLOON_DOWN;
 	}
 
-	CC_SAFE_RELEASE_NULL(_actionMovedown);
+	//CC_SAFE_RELEASE_NULL(_actionMovedown);
 
 	this->initActions();
 }
@@ -918,9 +974,8 @@ void GameScene::onLostGame(Node* node)
 
 void GameScene::showRetryMenu()
 {
-	Utils::showAd();
 	_layerShadow->setVisible(true);
-
+    Utils::showAd();
 	auto moveTo = MoveBy::create(0.8f, Vec2(0, -1000));
 	_menuResult->setVisible(true);
 	_menuResult->runAction(moveTo);
@@ -952,7 +1007,7 @@ void GameScene::doReleaseAllTutorial()
 	_idBalloonTutorial = -1;
 	SpriteFrameCache::getInstance()->removeSpriteFramesFromFile(TUTORIAL_ATLAS);
 
-	//UserDefault::getInstance()->setBoolForKey(KEY_IS_TUTORIAL, true);
+	UserDefault::getInstance()->setBoolForKey(KEY_IS_TUTORIAL, true);
 	getChildByName("menucontrol")->setVisible(true);
 
 	this->initGame();
@@ -960,7 +1015,7 @@ void GameScene::doReleaseAllTutorial()
 
 MenuItemSprite* GameScene::addButton(std::string up, std::string dn, std::string dis, ccMenuCallback callback)
 {
-	Sprite* itemUp, *itemDn, *itemDis;
+	Sprite *itemUp, *itemDn, *itemDis;
 
 	itemUp = Sprite::createWithSpriteFrameName(up);
 	itemDn = Sprite::createWithSpriteFrameName(dn);
@@ -971,13 +1026,21 @@ MenuItemSprite* GameScene::addButton(std::string up, std::string dn, std::string
 
 void GameScene::showAdsInterRandom()
 {
-	int idx = RandomHelper::random_int(0, 4);
-	log("randomize %d", idx);
-	if (3 == idx)
+	_countLost = (_countLost + 1);
+	int count = UserDefault::getInstance()->getIntegerForKey(KEY_COUNT_OPEN_APP, 0);
+	//Utils::showAdInter();
+	int max = 3;
+	if (count == 1)
 	{
-		log("sdasdsda");
-		Utils::showAdInter();
+		max = 4;
 	}
+
+	if (_countLost >= max)
+	{
+		Utils::showAdInter();
+        _countLost -= max;
+	}
+
 }
 
 GameScene::~GameScene()

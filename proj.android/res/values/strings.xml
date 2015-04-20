@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">RainNumber</string>
+    <string name="app_name">Magic Tick</string>
     <integer name="google_play_services_version">6587000</integer>
 </resources>

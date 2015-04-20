@@ -55,7 +55,16 @@ static const char *BALLOONS[TOTAL_BALLOONS] = {
 #define BACKGROUND_OFFSET	109.0f
 
 #define TIMEDROP_INIT	4.5f
-#define BALLOON_INTERVAL	2.2f
+#define TIMEDROP_INIT_MULTIBALLOON	6.0f
+
+#define TIMEDROP_INIT_MIN	2.5f
+#define TIMEDROP_INIT_MULTIBALLOON_MIN	3.5f
+
+#define TIME_INIT_INCREASE_DIFFICULTY	7.0f
+#define TIME_INCREASE	5.0f
+
+#define TIMEDROP_BALLOON_DOWN	0.2f
+#define TIMEDROP_MULTIBALLOON_DOWN	0.1f
 
 #define TIME_increaseDifficulty	8.0f
 #define increaseDifficulty	0.25f
@@ -76,7 +85,7 @@ static const char *BALLOONS[TOTAL_BALLOONS] = {
 #define sprite_bt_sound	"bt_sound.png"
 #define sprite_bt_sound_down	"bt_sound_down.png"
 
-static int TIMELINE_BALLOON[] = {0, 1, 3, 7, 4, 0, 1, 2, 3, 1, 5, 7, 2, 0, 4, 6, 1, 7, 2, 6, 5, 3, 4, 7, 5, 3, 6};
+static int TIMELINE_BALLOON[] = {0, 2, 1, 0, 3, 7, 4, 5, 1, 3, 0, 1, 2, 6, 3, 2, 1, 4, 5, 1, 7, 6, 2, 1, 0, 2, 6, 1, 7, 2, 6, 5, 3, 2, 1, 4, 7, 0, 5, 3, 6};
 static int TOTAL_TIMELINE_BALLOON = sizeof(TIMELINE_BALLOON) / sizeof(int);
 
 static int	Multi_Balloon_1[] = {0, 3, 5, 7};
@@ -151,34 +160,49 @@ static float TIME_INIT_MULTIBALLOONS[] = {
 	3.8f, 3.6f, 9.4f, 3.2f, 3.0f, 
 	3.4f, 10.5f, 3.3f, 3.6f, 3.5f,
 	3.4f, 3.5f, 3.3f, 3.6f, 3.5f,
+	1.1f, 7.1f, 9.2f, 9.3f, 10.4f,
+	6.0f, 8.1f, 6.2f, 14.3f, 8.4f,
+	5.4f, 5.2f, 7.1f, 5.2f, 5.0f,
+	4.9f, 4.7f, 4.5f, 8.3f, 4.1f,
+	3.8f, 3.6f, 9.4f, 3.2f, 3.0f,
+	3.4f, 10.5f, 3.3f, 3.6f, 3.5f,
+	3.4f, 3.5f, 3.3f, 3.6f, 3.5f,
 };
 
 #define TIME_INIT_BALLOON	0.5f
 static float TIME_INIT_BALLOONS[] = {
-	0.5f, 0.15f, 2.0f, 1.1f, 2.4f,
-	2.3f, 0.1f, 3.2f, 0.7f, 1.9f,
-	0.5f, 1.1f, 2.2f, 1.5f, 2.4f,
-	1.3f, 0.1f, 2.5f, 0.7f, 2.4f,
-	1.1f, 0.1f, 2.2f, 0.7f, 1.6f,
-	0.5f, 0.1f, 3.2f, 0.1f, 1.4f,
-	1.3f, 0.1f, 2.2f, 0.7f, 1.4f,
-	0.5f, 0.1f, 2.2f, 0.7f, 1.4f,
-	0.5f, 0.1f, 2.2f, 1.1f, 1.4f,
-	1.3f, 0.1f, 2.2f, 0.7f, 1.4f,
-	0.5f, 0.1f, 2.2f, 0.7f, 1.4f,
-	0.5f, 0.1f, 2.2f, 1.1f, 1.4f,
-	1.3f, 0.1f, 2.2f, 0.7f, 1.4f,
-	0.5f, 0.1f, 2.2f, 1.1f, 1.4f,
-	1.3f, 0.1f, 2.2f, 0.7f, 1.4f,
+	0.5f, 0.15f, 2.2f, 1.3f, 2.5f, 2.4f, 0.3f, 3.3f, 1.0f, 1.9f,
+
+	0.5f, 1.15f, 2.0f, .9f, 2.4f, 1.8f, 0.9f, 2.5f, 1.7f, 0.9f,
+
+	0.5f, 1.15f, 2.0f, 1.1f, 2.4f, 1.3f, 0.9f, 2.2f, 1.7f, 0.9f,
+	0.5f, 0.55f, 2.2f, 1.2f, 2.4f, 2.3f, 1.1f, 3.2f, 1.1f, 1.9f,
+
+	0.5f, 1.55f, 2.0f, .6f, 2.4f, 1.3f, 1.9f, 2.2f, 1.7f, 0.9f,
+	0.5f, 1.5f, 2.0f, .6f, 2.4f, 1.3f, 0.9f, 2.2f, 1.7f, 0.9f,
+	0.5f, 0.8f, 1.5f, 1.5f, 2.4f, 1.5f, 0.6f, 2.5f, 1.5f, 0.9f,
+
+	0.5f, 1.5f, 2.9f, .8f, 2.4f, 1.3f, 1.1f, 2.2f, 1.9f, 0.9f,
+	0.5f, 0.5f, 2.0f, 1.1f, 2.4f, 2.3f, 1.1f, 3.2f, 1.1f, 1.9f,
+	0.5f, 1.5f, 2.2f, .3f, 2.4f, 1.3f, 0.9f, 2.5f, 1.1f, 1.1f,
+	0.5f, 0.15f, 2.0f, 1.1f, 2.4f, 2.3f, 1.2f, 3.2f, 0.7f, 0.9f,
+
+	0.5f, 1.5f, 2.9f, .6f, 2.4f, 1.3f, 0.9f, 2.2f, 1.7f, 0.9f,
+	0.5f, 0.5f, 2.0f, 1.1f, 2.4f, 2.3f, 0.5f, 3.2f, 0.7f, 1.9f,
+	0.5f, 1.5f, 2.2f, .3f, 2.4f, 1.3f, 0.9f, 2.5f, 1.1f, 1.1f,
+	0.5f, 0.15f, 2.0f, 1.1f, 2.4f, 2.3f, 1.1f, 3.2f, 0.7f, 0.9f,
+	0.5f, 1.5f, 2.2f, .3f, 2.4f, 1.3f, 0.9f, 2.5f, 1.1f, 1.1f,
+	0.5f, 0.15f, 2.0f, 1.1f, 2.4f, 2.3f, 1.1f, 3.2f, 0.7f, 0.9f,
 };
 
 #define IS_LOAD_AD true
 #define USE_GAME_SHARING 0
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-#define AD_MOB_ID "ca-app-pub-8276214091783142/3681393914"
-#define AD_MOB_INTER_ID	"ca-app-pub-8276214091783142/6634860310"
+#define AD_MOB_ID "ca-app-pub-3186971535196372/4700632043"
+#define AD_MOB_INTER_ID	"ca-app-pub-3186971535196372/9130831641"
 #else
-#define AD_MOB_ID "ca-app-pub-1365294910612623/3607197793"
+#define AD_MOB_ID "ca-app-pub-3186971535196372/1467964045"
+#define AD_MOB_INTER_ID	"ca-app-pub-3186971535196372/2944697244"
 #endif
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 #define LINK_STORE "market://details?id=com.beanpro.circle"
@@ -197,13 +221,14 @@ static float TIME_INIT_BALLOONS[] = {
 #define KEY_PLAY_MUSIC		"KEY_PLAY_MUSIC"
 #define KEY_BEST_SCORE		"KEY_BEST_SCORE"
 #define KEY_IS_TUTORIAL		"KEY_IS_TUTORIAL"
+#define KEY_COUNT_OPEN_APP	"KEY_COUNT_OPEN_APP"
 
 //Sounds path
-#define music_background	"sounds/background_music.mp3"
+#define music_background	"sounds/background_music.wav"
 #define sound_ball_explosion	"sounds/balloon_explosion2.wav"
 #define sound_stack_balls_explosion	"sounds/baloon_explosion_nuke.wav"
 #define sound_combo	"sounds/combo_sound.wav"
-#define sound_lost	"sounds/lost.mp3"
+#define sound_lost	"sounds/lost.wav"
 
 //shaders
 #define shake_vsh	"shaders/shake.vsh"

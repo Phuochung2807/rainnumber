@@ -1,14 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2012/deployment" AppPlatformVersion="8.0">
   <DefaultLanguage xmlns="" code="en-US" />
-  <App xmlns="" ProductID="{83cc88fe-7e79-4e1e-a129-742987130b5c}" Title="RainNumber" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="RainNumber author" Description="Sample description" Publisher="RainNumber" PublisherID="{ebf6c0e1-80a3-41f1-8553-4aaab70da912}">
-    <IconPath IsRelative="true" IsResource="false">Assets\ApplicationIcon.png</IconPath>
+  <App xmlns="" ProductID="{83cc88fe-7e79-4e1e-a129-742987130b5c}" Title="Magic Tick" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="Le Nguyen Phuoc Hung" Description="Magic Tick" Publisher="RainNumber" PublisherID="{ebf6c0e1-80a3-41f1-8553-4aaab70da912}">
+    <IconPath IsRelative="true" IsResource="false">icon2.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING" />
       <Capability Name="ID_CAP_MEDIALIB_AUDIO" />
       <Capability Name="ID_CAP_MEDIALIB_PLAYBACK" />
       <Capability Name="ID_CAP_SENSORS" />
       <Capability Name="ID_CAP_WEBBROWSERCOMPONENT" />
+      <Capability Name="ID_CAP_IDENTITY_USER" />
+      <Capability Name="ID_CAP_MEDIALIB_PHOTO" />
+      <Capability Name="ID_CAP_PHONEDIALER" />
     </Capabilities>
     <Tasks>
       <DefaultTask Name="_default" NavigationPage="MainPage.xaml" ActivationPolicy="Resume" />
@@ -16,10 +19,10 @@
     <Tokens>
       <PrimaryToken TokenID="cocos2dToken" TaskName="_default">
         <TemplateFlip>
-          <SmallImageURI IsRelative="true" IsResource="false">Assets\Tiles\FlipCycleTileSmall.png</SmallImageURI>
+          <SmallImageURI IsRelative="true" IsResource="false">icon2.png</SmallImageURI>
           <Count>0</Count>
-          <BackgroundImageURI IsRelative="true" IsResource="false">Assets\Tiles\FlipCycleTileMedium.png</BackgroundImageURI>
-          <Title>RainNumber</Title>
+          <BackgroundImageURI IsRelative="true" IsResource="false">icon2.png</BackgroundImageURI>
+          <Title>Magic Tick</Title>
           <BackContent>
           </BackContent>
           <BackBackgroundImageURI>
